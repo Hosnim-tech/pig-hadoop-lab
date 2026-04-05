@@ -1,0 +1,94 @@
+services:
+  namenode:
+    image: med0712/pig-hadoop-namenode:latest
+    build:
+      context: ./docker
+      dockerfile: Dockerfile.namenode
+    container_name: namenode
+    hostname: namenode
+    ports:
+      - "9870:9870"
+      - "9000:9000"
+    volumes:
+      - namenode_data:/hadoop/dfs/name
+      - ./data:/data
+      - ./scripts:/scripts
+    environment:
+      - CLUSTER_NAME=pig-lab
+    networks:
+      - hadoop-net
+    healthcheck:
+      test: ["CMD-SHELL", "hdfs dfsadmin -safemode get || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  datanode1:
+    image: med0712/pig-hadoop-datanode:latest
+    build:
+      context: ./docker
+      dockerfile: Dockerfile.datanode
+    container_name: datanode1
+    hostname: datanode1
+    depends_on:
+      namenode:
+        condition: service_healthy
+    volumes:
+      - datanode1_data:/hadoop/dfs/data
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    networks:
+      - hadoop-net
+
+  datanode2:
+    image: med0712/pig-hadoop-datanode:latest
+    build:
+      context: ./docker
+      dockerfile: Dockerfile.datanode
+    container_name: datanode2
+    hostname: datanode2
+    depends_on:
+      namenode:
+        condition: service_healthy
+    volumes:
+      - datanode2_data:/hadoop/dfs/data
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    networks:
+      - hadoop-net
+
+  zeppelin:
+    image: med0712/pig-hadoop-zeppelin:latest
+    build:
+      context: ./docker
+      dockerfile: Dockerfile.zeppelin
+    container_name: zeppelin
+    hostname: zeppelin
+    ports:
+      - "8080:8080"
+    depends_on:
+      namenode:
+        condition: service_healthy
+      datanode1:
+        condition: service_started
+      datanode2:
+        condition: service_started
+    volumes:
+      - zeppelin_notebook:/opt/zeppelin/notebook
+      - ./data:/data
+      - ./scripts:/scripts
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    networks:
+      - hadoop-net
+
+volumes:
+  namenode_data:
+  datanode1_data:
+  datanode2_data:
+  zeppelin_notebook:
+
+networks:
+  hadoop-net:
+    driver: bridge
