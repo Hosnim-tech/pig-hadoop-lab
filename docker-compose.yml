@@ -1,6 +1,6 @@
 services:
   namenode:
-    image: med0712/pig-hadoop-namenode:latest
+    image: med0712/pig-hadoop-lab-namenode:latest
     build:
       context: ./docker
       dockerfile: Dockerfile.namenode
@@ -42,7 +42,7 @@ services:
       - hadoop-net
 
   datanode2:
-    image: med0712/pig-hadoop-datanode:latest
+    image: med0712/pig-hadoop-lab-datanode:latest
     build:
       context: ./docker
       dockerfile: Dockerfile.datanode
@@ -59,7 +59,7 @@ services:
       - hadoop-net
 
   zeppelin:
-    image: med0712/pig-hadoop-zeppelin:latest
+    image: med0712/pig-hadoop-lab-zeppelin:latest
     build:
       context: ./docker
       dockerfile: Dockerfile.zeppelin
